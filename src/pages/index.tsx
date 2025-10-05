@@ -128,8 +128,8 @@ export default function Home() {
         let signedTx: string;
         try {
           signedTx = await wallet.signTx(unsignedTx);
-        } catch (e: any) {
-          const msg = String(e?.message || e || '').toLowerCase();
+        } catch (e: unknown) {
+          const msg = String((e as { message?: string } | undefined)?.message || e || '').toLowerCase();
           if (
             msg.includes('declined') ||
             msg.includes('denied') ||
@@ -139,7 +139,8 @@ export default function Home() {
           ) {
             setError('Transaction signing was cancelled by the user.');
           } else {
-            setError(e?.message || 'Failed to sign transaction.');
+            const errMsg = (e as { message?: string } | undefined)?.message || 'Failed to sign transaction.';
+            setError(errMsg);
           }
           setLoadingMessage('');
           return; // abort minting if not signed
@@ -151,8 +152,9 @@ export default function Home() {
           const hash = await wallet.submitTx(signedTx);
           setTxHash(hash);
           return hash;
-        } catch (e: any) {
-          setError(e?.message || 'Failed to submit transaction.');
+        } catch (e: unknown) {
+          const errMsg = (e as { message?: string } | undefined)?.message || 'Failed to submit transaction.';
+          setError(errMsg);
           setLoadingMessage('');
           return;
         }
@@ -163,9 +165,9 @@ export default function Home() {
         timeout(TIMEOUTS.TRANSACTION)
       ]);
 
-    } catch (error: any) {
-      console.error("Minting error:", error);
-      setError(error.message || "An unexpected error occurred. Please try again.");
+    } catch (error: unknown) {
+      const errMsg = (error as { message?: string } | undefined)?.message || "An unexpected error occurred. Please try again.";
+      setError(errMsg);
     } finally {
       setLoading(false);
     }
